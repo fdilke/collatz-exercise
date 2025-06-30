@@ -1,20 +1,36 @@
 package com.fdilke.tx.collatz
 
+import java.util.{Timer, TimerTask}
 import scala.collection.mutable
 
 object CollatzMachines:
-  private val all: mutable.Map[String, CollatzMachine] =
+  private val allMachines: mutable.Map[String, CollatzMachine] =
     new mutable.HashMap[String, CollatzMachine]()
+
+  private val timer: Timer =
+    new Timer
+  private val timerTask: TimerTask =
+    new TimerTask:
+      override def run(): Unit =
+        pingTheMachines()
+
+  timer.schedule(timerTask, 1000, 1000)
+
+  private def pingTheMachines(): Unit =
+    for
+      (_, machine) <- allMachines
+    do
+      machine.ping()
 
   def create(id: String, startValue: String): Unit =
     if !startValue.forall(_.isDigit) then
       throw new IllegalArgumentException(s"illegal start value $startValue, should be all digits")
-    else    
-      all(id) = CollatzMachine(id, startValue.toInt)
+    else
+      allMachines(id) = CollatzMachine(id, startValue.toInt)
 
   def destroy(id: String): Unit =
-    if all.keySet.contains(id) then
-      all.remove(id)
-    else 
+    if allMachines.keySet.contains(id) then
+      allMachines.remove(id)
+    else
       throw new IllegalArgumentException(s"unknown Collatz machine id: $id")
 
