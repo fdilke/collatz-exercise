@@ -13,14 +13,12 @@ trait CreateCollatzMachine[F[_]]:
   ): F[Unit]
 
 object CreateCollatzMachine:
-//  final case class Id(id: String) extends AnyVal
-//  final case class StartValue(startValue: String) extends AnyVal
-
   def impl[F[_]: Applicative]: CreateCollatzMachine[F] =
     new CreateCollatzMachine[F]:
       override def create(
         id: String,
         startValue: String
       ): F[Unit] =
-        println(s"invoking a Collatz machine: id $id, startValue $startValue")
+        println(s"creating a Collatz machine: id $id, startValue $startValue")
+        CollatzMachines.create(id, startValue)
         ().pure[F]
