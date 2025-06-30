@@ -4,9 +4,16 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "3.7.0"
 
-//libraryDependencies ++= Seq(
-//  "org.scalaz" %% "scalaz-core" % "7.3.8"
-//)
+val Http4sVersion = "1.0.0-M29"
+val LogbackVersion = "1.2.6"
+
+libraryDependencies ++= Seq(
+  "org.http4s"      %% "http4s-ember-server" % Http4sVersion,
+  "org.http4s"      %% "http4s-ember-client" % Http4sVersion,
+  "org.http4s"      %% "http4s-circe"        % Http4sVersion,
+  "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
+  "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
+)
 
 lazy val root = (project in file("."))
   .settings(
