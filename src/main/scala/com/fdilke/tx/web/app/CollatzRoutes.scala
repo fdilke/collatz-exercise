@@ -30,7 +30,7 @@ object CollatzRoutes:
       case POST -> Root / "destroy" / id =>
         for
           _ <- config.destroy(id)
-          resp <- Created:
-            s"created Collatz machine with id=$id"
+          resp <- Ok:
+            s"destroyed Collatz machine with id=$id"
         yield
           resp

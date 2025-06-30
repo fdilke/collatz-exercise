@@ -7,11 +7,14 @@ object CollatzMachines:
     new mutable.HashMap[String, CollatzMachine]()
 
   def create(id: String, startValue: String): Unit =
-    all(id) = CollatzMachine(id, startValue)
+    if !startValue.forall(_.isDigit) then
+      throw new IllegalArgumentException(s"illegal start value $startValue, should be all digits")
+    else    
+      all(id) = CollatzMachine(id, startValue.toInt)
 
   def destroy(id: String): Unit =
     if all.keySet.contains(id) then
       all.remove(id)
-    else
+    else 
       throw new IllegalArgumentException(s"unknown Collatz machine id: $id")
 
