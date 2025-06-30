@@ -8,14 +8,15 @@ import org.http4s.dsl.Http4sDsl
 
 object CollatzRoutes:
   def collatzRoutes[F[_] : Sync](
-    J: CreateCollatzMachine[F]
+    config: CreateCollatzMachine[F]
   ): HttpRoutes[F] =
     val dsl = new Http4sDsl[F] {}
     import dsl._
-    HttpRoutes.of[F] {
-      case GET -> Root / "create" / id / startValue =>
-        for {
-          _ <- J.create(id, startValue)
-          resp <- Ok("xxx")
-        } yield resp
-    }
+    HttpRoutes.of[F]:
+      case POST -> Root / "create" / id / startValue =>
+        for
+          _ <- config.create(id, startValue)
+          resp <- Created:
+            s"created Collatz machine with id=$id startValue=$startValue"
+        yield
+          resp
