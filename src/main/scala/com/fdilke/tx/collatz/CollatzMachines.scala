@@ -35,3 +35,12 @@ object CollatzMachines:
 
   def messagesForAll(): Unit =
     ()
+
+  def incrementMachine(id: String, amount: String): Unit =
+    if allMachines.keySet.contains(id) then
+      if !amount.forall(_.isDigit) then
+        throw new IllegalArgumentException(s"illegal increment amount value $amount, should be all digits")
+      else
+        allMachines(id).increment(amount.toInt)
+    else
+      throw new IllegalArgumentException(s"unknown Collatz machine id: $id")

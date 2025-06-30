@@ -19,3 +19,5 @@ class CollatzMachine(
     currentValue = collatz(currentValue)
     println(s"$id) iterating -> $currentValue")
 
+  def increment(amount: Int): Unit =
+    ()

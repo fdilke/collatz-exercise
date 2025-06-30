@@ -2,7 +2,7 @@ package com.fdilke.tx.web.app
 
 import cats.effect.Sync
 import cats.implicits.*
-import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine, MessagesForAllIds, MessagesForId}
+import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine, IncrementMachine, MessagesForAllIds, MessagesForId}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
@@ -61,4 +61,18 @@ object CollatzRoutes:
           resp <- Ok:
             s"messages for all ids"
         yield
-          resp          
+          resp
+
+  def incrementMachine[F[_] : Sync](
+    config: IncrementMachine[F]
+  ): HttpRoutes[F] =
+    val dsl = new Http4sDsl[F] {}
+    import dsl._
+    HttpRoutes.of[F]:
+      case POST -> Root / "increment" / id/ amount =>
+        for
+          _ <- config.messages(id, amount)
+          resp <- Ok:
+            s"incrementing id=$id by $amount"
+        yield
+          resp

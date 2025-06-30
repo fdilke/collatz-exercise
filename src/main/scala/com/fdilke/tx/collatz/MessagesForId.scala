@@ -8,7 +8,7 @@ import cats.implicits._
 
 trait MessagesForId[F[_]]:
   def messages(
-    id: String,
+    id: String
   ): F[Unit]
 
 object MessagesForId:
