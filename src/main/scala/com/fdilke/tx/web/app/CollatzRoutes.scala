@@ -2,7 +2,7 @@ package com.fdilke.tx.web.app
 
 import cats.effect.Sync
 import cats.implicits.*
-import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine}
+import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine, MessagesForAllIds, MessagesForId}
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 
@@ -34,3 +34,31 @@ object CollatzRoutes:
             s"destroyed Collatz machine with id=$id"
         yield
           resp
+
+  def messagesForId[F[_] : Sync](
+    config: MessagesForId[F]
+  ): HttpRoutes[F] =
+    val dsl = new Http4sDsl[F] {}
+    import dsl._
+    HttpRoutes.of[F]:
+      case GET -> Root / "messages" / id =>
+        for
+          _ <- config.messages(id)
+          resp <- Ok:
+            s"messages for id=$id"
+        yield
+          resp
+
+  def messagesForAllIds[F[_] : Sync](
+    config: MessagesForAllIds[F]
+  ): HttpRoutes[F] =
+    val dsl = new Http4sDsl[F] {}
+    import dsl._
+    HttpRoutes.of[F]:
+      case GET -> Root / "messages" =>
+        for
+          _ <- config.messages()
+          resp <- Ok:
+            s"messages for all ids"
+        yield
+          resp          

@@ -7,14 +7,10 @@ object CollatzMachines:
   private val allMachines: mutable.Map[String, CollatzMachine] =
     new mutable.HashMap[String, CollatzMachine]()
 
-  private val timer: Timer =
-    new Timer
-  private val timerTask: TimerTask =
-    new TimerTask:
-      override def run(): Unit =
-        pingTheMachines()
-
-  timer.schedule(timerTask, 1000, 1000)
+  (new Timer).schedule(
+    () => pingTheMachines(),
+    1000,
+    1000)
 
   private def pingTheMachines(): Unit =
     for
@@ -34,3 +30,8 @@ object CollatzMachines:
     else
       throw new IllegalArgumentException(s"unknown Collatz machine id: $id")
 
+  def messages(id: String): Unit =
+    ()
+
+  def messagesForAll(): Unit =
+    ()
