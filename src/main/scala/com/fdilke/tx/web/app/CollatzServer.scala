@@ -11,7 +11,7 @@ import org.http4s.server.middleware.Logger
 
 object CollatzServer:
 
-  def run[F[_]: Async]: F[Nothing] = {
+  def run[F[_]: Async]: F[Nothing] =
     for {
       client <- EmberClientBuilder.default[F].build
       createMachine = CreateCollatzMachine.impl[F]
@@ -19,7 +19,6 @@ object CollatzServer:
       messagesForId = MessagesForId.impl[F]
       messagesForAllIds = MessagesForAllIds.impl[F]
       incrementMachine = IncrementMachine.impl[F]
-
       httpApp = (
         CollatzRoutes.createMachine[F](createMachine) <+>
           CollatzRoutes.destroyMachine[F](destroyMachine) <+>
@@ -38,4 +37,4 @@ object CollatzServer:
           .withHttpApp(finalHttpApp)
           .build
     } yield ()
-  }.useForever
+  .useForever

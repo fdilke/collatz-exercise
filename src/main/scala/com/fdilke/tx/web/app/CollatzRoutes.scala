@@ -3,8 +3,13 @@ package com.fdilke.tx.web.app
 import cats.effect.Sync
 import cats.implicits.*
 import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine, IncrementMachine, MessagesForAllIds, MessagesForId}
-import org.http4s.HttpRoutes
+import org.http4s.{HttpRoutes, MediaType, Response, ServerSentEvent}
 import org.http4s.dsl.Http4sDsl
+import fs2.Stream
+import org.http4s.ServerSentEvent.EventId
+//import org.http4s.sse.ServerSentEvent
+import org.http4s.headers.{`Content-Type`, `Last-Modified`}
+import scala.concurrent.duration._
 
 object CollatzRoutes:
   def createMachine[F[_] : Sync](
@@ -42,12 +47,35 @@ object CollatzRoutes:
     import dsl._
     HttpRoutes.of[F]:
       case GET -> Root / "messages" / id =>
-        for
-          _ <- config.messages(id)
-          resp <- Ok:
-            s"messages for id=$id"
-        yield
-          resp
+//        for
+//          _ <- config.messages(id)
+//          resp <- Ok:
+//            s"messages for id=$id"
+//        yield
+//          resp
+        val events: Stream[F, ServerSentEvent] = Stream(
+          ServerSentEvent(Some("message 1"), Some("event-type-1"), Some(EventId("1")), Some(1.seconds)),
+          ServerSentEvent(Some("message 2"), Some("event-type-2"), Some(EventId("2")), Some(2.seconds)),
+          ServerSentEvent(Some("message 3"), Some("event-type-1"), Some(EventId("3")), Some(3.seconds))
+        ).covary[F]
+
+        val stream: Stream[F, ServerSentEvent] =
+          Stream.emit(events).flatMap(identity)
+
+//        for
+//          _ <- config.messages(id)
+//          resp <- Ok:
+//            stream
+//        yield
+//          resp
+
+        val response = Response[F](Ok)
+          .withContentType(`Content-Type`(
+            new MediaType("text", "event-stream", compressible=true, binary=false)
+          ))
+          .withBodyStream(stream.through(ServerSentEvent.encoder))
+
+        response.pure[F]
 
   def messagesForAllIds[F[_] : Sync](
     config: MessagesForAllIds[F]
