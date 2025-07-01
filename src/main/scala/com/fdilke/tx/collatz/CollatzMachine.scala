@@ -8,61 +8,49 @@ import cats.effect.{Async, Concurrent, IO}
 import fs2.concurrent.Topic
 import cats.implicits.*
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.duration.*
 
 class CollatzMachine[F[_]: Async](
   id: String,
   startValue: Int
 ):
-  private var currentValue: Int =
-    startValue
+  private val seqPosition: AtomicInteger =
+    AtomicInteger(0)
 
-  private val topicF: F[Topic[F, Int]] =
-    Topic[F, Int]
+  private val collatzStream: Stream[F, Int] =
+    Stream.iterate(startValue): n =>
+      if n == 1 then
+        startValue
+      else if n % 2 == 1 then
+        1 + 3 * n
+      else
+        n / 2
+    .covary[F]
 
-  val x: Stream[F, Topic[F, Int]] = 
-    Stream.eval(topicF)
+//  private val topicF: F[Topic[F, Int]] =
+//    Topic[F, Int]
+//
+//  val x: Stream[F, Topic[F, Int]] =
+//    Stream.eval(topicF)
   
-  private def collatz(n: Int) =
-    if n == 1 then
-      startValue
-    else if n % 2 == 1 then
-      1 + 3 * n
-    else
-      n / 2
 
   def ping(): F[Unit] =
     for
-      _ <- { currentValue = collatz(currentValue) }.pure[F]
-      topic <- topicF
-      _ <- IO.println(s"$id) iterating -> $currentValue").asInstanceOf[F[Unit]]
-      _ <- topic.publish1(currentValue)
+      position <- { seqPosition.getAndIncrement }.pure[F]
+      latestOption <- collatzStream.drop(position).take(1).compile.last
+      latest = latestOption.getOrElse { throw new IllegalStateException() }
+      _ <- IO.println(s"$id) iterating -> position=$position value=$latest").asInstanceOf[F[Unit]]
     yield
       ()
-     
-      
-//      topic.publish1()
-  // IO.println(s"pinged machine: $id").asInstanceOf[F[Unit]]
-    
-  //      {
-//  }.pure[F]
 
   def increment(amount: Int): Unit =
     ()
 
   def streamEvents(): F[Stream[F, ServerSentEvent]] =
-    for
-      topic <- topicF
-      stream = topic.subscribe(100)
+    (for
+      n <- collatzStream.drop(seqPosition.get)
     yield
-      for
-        n <- stream
-      yield
-        ServerSentEvent(Some(s"iterate=$n"), Some("collatz-event-type"), Some(EventId("1")), Some(1.seconds))
-        
-//    Stream(
-//      ServerSentEvent(Some("message 1"), Some("event-type-1"), Some(EventId("1")), Some(1.seconds)),
-//      ServerSentEvent(Some("message 2"), Some("event-type-2"), Some(EventId("2")), Some(2.seconds)),
-//      ServerSentEvent(Some("message 3"), Some("event-type-1"), Some(EventId("3")), Some(3.seconds))
-//    ).covary[F]
-    
+      ServerSentEvent(Some(s"iterate=$n"), Some("collatz-event-type"), Some(EventId("1")), Some(1.seconds))
+    ).pure[F]
+
