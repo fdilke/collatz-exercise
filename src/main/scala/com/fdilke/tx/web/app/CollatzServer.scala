@@ -1,7 +1,7 @@
 package com.fdilke.tx.web.app
 
 import cats.effect.{Async, IO}
-import cats.effect.kernel.Resource
+import cats.effect.kernel.{Fiber, Resource}
 import cats.syntax.all.*
 import com.comcast.ip4s.*
 import com.fdilke.tx.collatz.*
@@ -9,6 +9,8 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
 import org.http4s.server.middleware.Logger
+import fs2.Stream
+import cats.effect.implicits._
 
 import java.time.Instant
 import scala.concurrent.duration.*
@@ -17,7 +19,7 @@ object CollatzServer:
 
   def run[F[_]: Async]: F[Unit] =
     val machines = new CollatzMachines[F]()
-    val resource: Resource[F, Unit] =
+    val serverResource: Resource[F, Unit] =
       for
         client <- EmberClientBuilder.default[F].build
         createMachine = CreateCollatzMachine.impl[F](machines)
@@ -35,8 +37,8 @@ object CollatzServer:
         finalHttpApp = Logger.httpApp(true, true)(httpApp)
 
 //        _ <-
-//          Resource.eval(IO.println("bird 1 off").asInstanceOf[F[Unit]])
-//           Resource.eval(repeat[F](() => machines.pingTheMachines()))
+//          // Resource.eval(IO.println("bird 1 off").asInstanceOf[F[Unit]])
+//           Resource.eval(repeat2[F](machines.pingTheMachines()))
         _ <-
           EmberServerBuilder.default[F]
             .withHost(ipv4"0.0.0.0")
@@ -45,6 +47,35 @@ object CollatzServer:
             .build
       yield
         ()
+    val timerResource: Resource[F, Unit] =
+        Resource.make(
+          Async[F].start(
+            Stream
+              .awakeEvery[F](1.seconds)
+              .evalMap(_ => machines.pingTheMachines())
+              .compile
+              .drain
+          )
+        )(fiber => fiber.cancel).void
+//    val wig: F[Unit] =
+//        Stream
+//          .awakeEvery[F](1.seconds)
+//          .evalMap(_ => machines.pingTheMachines())
+//          .compile
+//          .drain
+//    Async[F].
+//    serverResource.useForever.map:
+//      _ => ()
+  //    for
+//      fiber1 <- timerResource.useForever.start
+//      fiber2 <- serverResource.useForever.start
+//      _ <- fiber1.join
+//      _ <- fiber2.join
+//    yield
+//      ()
+    Resource.both(timerResource, serverResource).useForever.map:
+      _ => ()
+/*
     for {
 /*      _ <- Resource.make(
         Async[F].start(
@@ -54,6 +85,7 @@ object CollatzServer:
       )(fiber => fiber.cancel).use(_ => Async[F].never) */
       _ <- resource.useForever
     } yield ()
+*/
 
   private def repeat[F[_] : Async](task: () => F[Unit]): F[Unit] =
     Async[F].sleep(1.second) *> {
@@ -61,6 +93,10 @@ object CollatzServer:
     } *>
       Async[F].defer(task())
     *> Async[F].defer(repeat(task))
+
+  def repeat2[F[_]: Async](task: F[Unit]): F[Nothing] =
+    task >> Async[F].sleep(1.second) >>
+      Async[F].defer(repeat2(task))
 
 //  private def schedule[F[_] : Async](task: () => F[Unit]): F[Unit] =
 //    Async[F].sleep(1.second) *> {

@@ -45,24 +45,11 @@ object CollatzRoutes:
     import dsl._
     HttpRoutes.of[F]:
       case GET -> Root / "messages" / id =>
-//        for
-//          _ <- config.messages(id)
-//          resp <- Ok:
-//            s"messages for id=$id"
-//        yield
-//          resp
         val events: Stream[F, ServerSentEvent] = 
           config.messages(id)
 
         val stream: Stream[F, ServerSentEvent] =
           Stream.emit(events).flatMap(identity)
-
-//        for
-//          _ <- config.messages(id)
-//          resp <- Ok:
-//            stream
-//        yield
-//          resp
 
         val response = Response[F](Ok)
           .withContentType(`Content-Type`(
