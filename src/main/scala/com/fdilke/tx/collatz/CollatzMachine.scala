@@ -4,9 +4,11 @@ import cats.Applicative
 import fs2.Stream
 import org.http4s.ServerSentEvent
 import ServerSentEvent.EventId
-import scala.concurrent.duration._
+import cats.effect.Async
 
-class CollatzMachine(
+import scala.concurrent.duration.*
+
+class CollatzMachine[F[_]: Async](
   id: String,
   startValue: Int
 ):
@@ -28,7 +30,7 @@ class CollatzMachine(
   def increment(amount: Int): Unit =
     ()
 
-  def streamEvents[F[_] : Applicative](): Stream[F, ServerSentEvent] =
+  def streamEvents(): Stream[F, ServerSentEvent] =
     Stream(
       ServerSentEvent(Some("message 1"), Some("event-type-1"), Some(EventId("1")), Some(1.seconds)),
       ServerSentEvent(Some("message 2"), Some("event-type-2"), Some(EventId("2")), Some(2.seconds)),

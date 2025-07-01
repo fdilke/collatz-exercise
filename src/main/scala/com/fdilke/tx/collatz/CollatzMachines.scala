@@ -9,8 +9,8 @@ import java.util.{Timer, TimerTask}
 import scala.collection.mutable
 
 class CollatzMachines[F[_]: Async]:
-  private val allMachines: mutable.Map[String, CollatzMachine] =
-    new mutable.HashMap[String, CollatzMachine]()
+  private val allMachines: mutable.Map[String, CollatzMachine[F]] =
+    new mutable.HashMap[String, CollatzMachine[F]]()
 
   (new Timer).schedule(
     () => pingTheMachines(),
@@ -27,7 +27,8 @@ class CollatzMachines[F[_]: Async]:
     if !startValue.forall(_.isDigit) then
       throw new IllegalArgumentException(s"illegal start value $startValue, should be all digits")
     else
-      allMachines(id) = CollatzMachine(id, startValue.toInt)
+      allMachines(id) =
+        CollatzMachine[F](id, startValue.toInt)
 
   def destroy(id: String): Unit =
     if allMachines.keySet.contains(id) then
