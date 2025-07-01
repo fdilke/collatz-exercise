@@ -10,7 +10,7 @@ trait MessagesForAllIds[F[_]]:
   def messages(): F[Unit]
 
 object MessagesForAllIds:
-  def impl[F[_]: Applicative]: MessagesForAllIds[F] =
+  def impl[F[_]: Applicative](machines: CollatzMachines[F]): MessagesForAllIds[F] =
     () =>
-      CollatzMachines.messagesForAll()
+      machines.messagesForAll()
       ().pure[F]

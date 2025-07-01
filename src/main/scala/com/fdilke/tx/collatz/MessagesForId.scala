@@ -14,7 +14,7 @@ trait MessagesForId[F[_]]:
   ): Stream[F, ServerSentEvent]
 
 object MessagesForId:
-  def impl[F[_]: Applicative]: MessagesForId[F] =
+  def impl[F[_]: Applicative](machines: CollatzMachines[F]): MessagesForId[F] =
     (id: String) =>
-      CollatzMachines.streamForMachine(id)
+      machines.streamForMachine(id)
 

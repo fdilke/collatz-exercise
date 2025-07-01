@@ -12,11 +12,11 @@ trait DestroyCollatzMachine[F[_]]:
   ): F[Unit]
 
 object DestroyCollatzMachine:
-  def impl[F[_]: Applicative]: DestroyCollatzMachine[F] =
+  def impl[F[_]: Applicative](machines: CollatzMachines[F]): DestroyCollatzMachine[F] =
     new DestroyCollatzMachine[F]:
       override def destroy(
         id: String
       ): F[Unit] =
         println(s"destroying Collatz machine: id $id")
-        CollatzMachines.destroy(id)
+        machines.destroy(id)
         ().pure[F]

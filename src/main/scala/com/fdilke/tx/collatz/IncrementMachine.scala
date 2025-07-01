@@ -13,7 +13,7 @@ trait IncrementMachine[F[_]]:
   ): F[Unit]
 
 object IncrementMachine:
-  def impl[F[_]: Applicative]: IncrementMachine[F] =
+  def impl[F[_]: Applicative](machines: CollatzMachines[F]): IncrementMachine[F] =
     (id: String, amount: String) =>
-      CollatzMachines.incrementMachine(id, amount)
+      machines.incrementMachine(id, amount)
       ().pure[F]

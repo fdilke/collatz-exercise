@@ -13,12 +13,12 @@ trait CreateCollatzMachine[F[_]]:
   ): F[Unit]
 
 object CreateCollatzMachine:
-  def impl[F[_]: Applicative]: CreateCollatzMachine[F] =
+  def impl[F[_]: Applicative](machines: CollatzMachines[F]): CreateCollatzMachine[F] =
     new CreateCollatzMachine[F]:
       override def create(
         id: String,
         startValue: String
       ): F[Unit] =
         println(s"creating a Collatz machine: id $id, startValue $startValue")
-        CollatzMachines.create(id, startValue)
+        machines.create(id, startValue)
         ().pure[F]

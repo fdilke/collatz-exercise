@@ -3,7 +3,7 @@ package com.fdilke.tx.web.app
 import cats.effect.Async
 import cats.syntax.all.*
 import com.comcast.ip4s.*
-import com.fdilke.tx.collatz.{CreateCollatzMachine, DestroyCollatzMachine, IncrementMachine, MessagesForAllIds, MessagesForId}
+import com.fdilke.tx.collatz.{CollatzMachines, CreateCollatzMachine, DestroyCollatzMachine, IncrementMachine, MessagesForAllIds, MessagesForId}
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
@@ -11,14 +11,15 @@ import org.http4s.server.middleware.Logger
 
 object CollatzServer:
 
-  def run[F[_]: Async]: F[Nothing] =
+  def run[F[_]: Async]: F[Nothing] = {
+    val machines = new CollatzMachines[F]()
     for {
       client <- EmberClientBuilder.default[F].build
-      createMachine = CreateCollatzMachine.impl[F]
-      destroyMachine = DestroyCollatzMachine.impl[F]
-      messagesForId = MessagesForId.impl[F]
-      messagesForAllIds = MessagesForAllIds.impl[F]
-      incrementMachine = IncrementMachine.impl[F]
+      createMachine = CreateCollatzMachine.impl[F](machines)
+      destroyMachine = DestroyCollatzMachine.impl[F](machines)
+      messagesForId = MessagesForId.impl[F](machines)
+      messagesForAllIds = MessagesForAllIds.impl[F](machines)
+      incrementMachine = IncrementMachine.impl[F](machines)
       httpApp = (
         CollatzRoutes.createMachine[F](createMachine) <+>
           CollatzRoutes.destroyMachine[F](destroyMachine) <+>
@@ -37,4 +38,5 @@ object CollatzServer:
           .withHttpApp(finalHttpApp)
           .build
     } yield ()
-  .useForever
+  }
+    .useForever

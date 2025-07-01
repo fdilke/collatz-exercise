@@ -1,13 +1,14 @@
 package com.fdilke.tx.collatz
 
 import cats.Applicative
+import cats.effect.Async
 import fs2.Stream
 import org.http4s.ServerSentEvent
 
 import java.util.{Timer, TimerTask}
 import scala.collection.mutable
 
-object CollatzMachines:
+class CollatzMachines[F[_]: Async]:
   private val allMachines: mutable.Map[String, CollatzMachine] =
     new mutable.HashMap[String, CollatzMachine]()
 
@@ -49,7 +50,7 @@ object CollatzMachines:
     else
       throw new IllegalArgumentException(s"unknown Collatz machine id: $id")
 
-  def streamForMachine[F[_]: Applicative](
+  def streamForMachine(
     id: String
   ): Stream[F, ServerSentEvent] =
     if allMachines.keySet.contains(id) then
