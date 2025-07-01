@@ -16,8 +16,8 @@ class CollatzMachine(
       n / 2
 
   def ping(): Unit =
-    currentValue = collatz(currentValue)
     println(s"$id) iterating -> $currentValue")
+    currentValue = collatz(currentValue)
 
   def increment(amount: Int): Unit =
     ()
