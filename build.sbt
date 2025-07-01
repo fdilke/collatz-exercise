@@ -14,8 +14,8 @@ libraryDependencies ++= Seq(
   "org.http4s"      %% "http4s-ember-client" % Http4sVersion,
   "org.http4s"      %% "http4s-circe"        % Http4sVersion,
   "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
-  "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
-
+  "ch.qos.logback"  %  "logback-classic"     % LogbackVersion
+//  "org.typelevel" %% "cats-effect" % "3.5.4"
 //  "com.softwaremill.sttp.tapir" %% "tapir-zio" % TapirVersion,
 //  "com.softwaremill.sttp.tapir" %% "tapir-http4s-server-zio" % TapirVersion,
 //  "com.softwaremill.sttp.tapir" %% "tapir-json-zio" % TapirVersion,

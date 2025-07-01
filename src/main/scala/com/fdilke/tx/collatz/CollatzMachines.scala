@@ -1,27 +1,25 @@
 package com.fdilke.tx.collatz
 
 import cats.Applicative
-import cats.effect.Async
+import cats.effect.{Async, IO}
+import cats.syntax.traverse
 import fs2.Stream
 import org.http4s.ServerSentEvent
 
 import java.util.{Timer, TimerTask}
 import scala.collection.mutable
+import cats.implicits.*
 
 class CollatzMachines[F[_]: Async]:
   private val allMachines: mutable.Map[String, CollatzMachine[F]] =
     new mutable.HashMap[String, CollatzMachine[F]]()
 
-  (new Timer).schedule(
-    () => pingTheMachines(),
-    1000,
-    1000)
-
-  private def pingTheMachines(): Unit =
-    for
-      (_, machine) <- allMachines
-    do
-      machine.ping()
+  def pingTheMachines(): F[Unit] =
+    IO.println("pinging the machines").asInstanceOf[F[Unit]]
+//    allMachines.values.toList.traverse: machine =>
+//      machine.ping()
+//    .map:
+//      _ => ()
 
   def create(id: String, startValue: String): Unit =
     if !startValue.forall(_.isDigit) then

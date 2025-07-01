@@ -4,7 +4,9 @@ import cats.Applicative
 import fs2.Stream
 import org.http4s.ServerSentEvent
 import ServerSentEvent.EventId
-import cats.effect.Async
+import cats.effect.{Async, Concurrent, IO}
+import fs2.concurrent.Topic
+import cats.implicits.*
 
 import scala.concurrent.duration.*
 
@@ -15,6 +17,9 @@ class CollatzMachine[F[_]: Async](
   private var currentValue: Int =
     startValue
 
+  private val topic: F[Topic[F, Int]] =
+    Topic[F, Int]
+
   private def collatz(n: Int) =
     if n == 1 then
       startValue
@@ -23,9 +28,12 @@ class CollatzMachine[F[_]: Async](
     else
       n / 2
 
-  def ping(): Unit =
-    println(s"$id) iterating -> $currentValue")
-    currentValue = collatz(currentValue)
+  def ping(): F[Unit] =
+    IO.println("bird").asInstanceOf[F[Unit]]
+//      {
+//    println(s"$id) iterating -> $currentValue")
+//    currentValue = collatz(currentValue)
+//  }.pure[F]
 
   def increment(amount: Int): Unit =
     ()
