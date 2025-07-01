@@ -11,7 +11,7 @@ import fs2.Stream
 trait MessagesForId[F[_]]:
   def messages(
     id: String
-  ): Stream[F, ServerSentEvent]
+  ): F[Stream[F, ServerSentEvent]]
 
 object MessagesForId:
   def impl[F[_]: Applicative](machines: CollatzMachines[F]): MessagesForId[F] =

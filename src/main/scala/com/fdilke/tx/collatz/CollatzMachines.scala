@@ -15,11 +15,11 @@ class CollatzMachines[F[_]: Async]:
     new mutable.HashMap[String, CollatzMachine[F]]()
 
   def pingTheMachines(): F[Unit] =
-    IO.println("pinging the machines").asInstanceOf[F[Unit]]
-//    allMachines.values.toList.traverse: machine =>
-//      machine.ping()
-//    .map:
-//      _ => ()
+//    IO.println("pinging the machines").asInstanceOf[F[Unit]]
+    allMachines.values.toList.traverse: machine =>
+      machine.ping()
+    .map:
+      _ => ()
 
   def create(id: String, startValue: String): Unit =
     if !startValue.forall(_.isDigit) then
@@ -51,7 +51,7 @@ class CollatzMachines[F[_]: Async]:
 
   def streamForMachine(
     id: String
-  ): Stream[F, ServerSentEvent] =
+  ): F[Stream[F, ServerSentEvent]] =
     if allMachines.keySet.contains(id) then
       allMachines(id).streamEvents()
     else

@@ -45,19 +45,13 @@ object CollatzRoutes:
     import dsl._
     HttpRoutes.of[F]:
       case GET -> Root / "messages" / id =>
-        val events: Stream[F, ServerSentEvent] = 
-          config.messages(id)
-
-        val stream: Stream[F, ServerSentEvent] =
-          Stream.emit(events).flatMap(identity)
-
-        val response = Response[F](Ok)
-          .withContentType(`Content-Type`(
-            new MediaType("text", "event-stream", compressible=true, binary=false)
-          ))
-          .withBodyStream(stream.through(ServerSentEvent.encoder))
-
-        response.pure[F]
+        config.messages(id) map:
+          (stream: Stream[F, ServerSentEvent]) =>
+          Response[F](Ok)
+            .withContentType(`Content-Type`(
+              new MediaType("text", "event-stream", compressible=true, binary=false)
+            ))
+            .withBodyStream(stream.through(ServerSentEvent.encoder))
 
   def messagesForAllIds[F[_] : Sync](
     config: MessagesForAllIds[F]
