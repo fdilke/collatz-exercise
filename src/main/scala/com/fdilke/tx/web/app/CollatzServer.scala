@@ -36,9 +36,6 @@ object CollatzServer:
           ).orNotFound
         finalHttpApp = Logger.httpApp(true, true)(httpApp)
 
-//        _ <-
-//          // Resource.eval(IO.println("bird 1 off").asInstanceOf[F[Unit]])
-//           Resource.eval(repeat2[F](machines.pingTheMachines()))
         _ <-
           EmberServerBuilder.default[F]
             .withHost(ipv4"0.0.0.0")
@@ -57,52 +54,5 @@ object CollatzServer:
               .drain
           )
         )(fiber => fiber.cancel).void
-//    val wig: F[Unit] =
-//        Stream
-//          .awakeEvery[F](1.seconds)
-//          .evalMap(_ => machines.pingTheMachines())
-//          .compile
-//          .drain
-//    Async[F].
-//    serverResource.useForever.map:
-//      _ => ()
-  //    for
-//      fiber1 <- timerResource.useForever.start
-//      fiber2 <- serverResource.useForever.start
-//      _ <- fiber1.join
-//      _ <- fiber2.join
-//    yield
-//      ()
     Resource.both(timerResource, serverResource).useForever.map:
       _ => ()
-/*
-    for {
-/*      _ <- Resource.make(
-        Async[F].start(
-          machines.pingTheMachines()
-//          repeat[F](() => machines.pingTheMachines())
-        )
-      )(fiber => fiber.cancel).use(_ => Async[F].never) */
-      _ <- resource.useForever
-    } yield ()
-*/
-
-  private def repeat[F[_] : Async](task: () => F[Unit]): F[Unit] =
-    Async[F].sleep(1.second) *> {
-      Async[F].delay(println(">> " + Instant.now.toString))
-    } *>
-      Async[F].defer(task())
-    *> Async[F].defer(repeat(task))
-
-  def repeat2[F[_]: Async](task: F[Unit]): F[Nothing] =
-    task >> Async[F].sleep(1.second) >>
-      Async[F].defer(repeat2(task))
-
-//  private def schedule[F[_] : Async](task: () => F[Unit]): F[Unit] =
-//    Async[F].sleep(1.second) *> {
-//      Async[F].delay(println(">> " + Instant.now.toString))
-//    } *>
-//      Async[F].defer(task())
-//
-//  private def repeat[F[_] : Async](task: () => F[Unit]): F[Unit] =
-//    schedule[F](task) >> repeat(task)
